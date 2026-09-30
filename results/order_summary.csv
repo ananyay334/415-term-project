@@ -1,0 +1,5 @@
+case,order,slope_all,slope_fine,fit_points,dx_first_below,dx_cross,cross_extrapolated,note,noisy_min_err_pct,noisy_optimum_dx,finest_dx,finest_err_pct
+tg,1,0.879618,0.976608,5,0.0122222,0.0122901,False,,12.4499,0.05,0.00862745,0.70603
+tg,2,1.81674,1.96499,5,0.146667,0.152601,False,,8.22595,0.0349206,0.00862745,0.00465518
+kov20,1,0.8405,0.997828,5,nan,0.00333792,True,not reached within the tested grids (extrapolated),17.7544,0.0454545,0.00784314,2.34535
+kov20,2,1.69704,1.95695,5,0.0222222,0.0258411,False,,5.62002,0.0454545,0.00784314,0.0989585

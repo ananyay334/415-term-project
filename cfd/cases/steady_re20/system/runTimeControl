@@ -1,0 +1,19 @@
+// Stop the run automatically once the steady-state criterion is met: every
+// initial residual (U components and p) below the threshold [verify the
+// runTimeControl syntax for your OpenFOAM version].
+runTimeControl1
+{
+    type            runTimeControl;
+    libs            (utilityFunctionObjects);
+    conditions
+    {
+        steadyState
+        {
+            type            equationInitialResidual;
+            fields          (U p);
+            value           1e-05;
+            mode            maximum;
+        }
+    }
+    satisfiedAction end;
+}

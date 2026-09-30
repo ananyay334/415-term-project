@@ -1,0 +1,20 @@
+// Force coefficients on the cylinder (included from controlDict)
+forceCoeffs1
+{
+    type            forceCoeffs;
+    libs            (forces);
+    writeControl    timeStep;
+    writeInterval   1;
+    log             false;
+
+    patches         (cylinder);
+    rho             rhoInf;          // incompressible solver: use rhoInf
+    rhoInf          1;
+    CofR            (0 0 0);
+    liftDir         (0 1 0);
+    dragDir         (1 0 0);
+    pitchAxis       (0 0 1);
+    magUInf         1;
+    lRef            1;               // D
+    Aref            0.1;             // D x span (span = cell thickness 0.1)
+}

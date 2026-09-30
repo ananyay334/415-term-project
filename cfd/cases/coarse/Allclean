@@ -1,0 +1,4 @@
+#!/bin/sh
+# Remove results of this case (keeps the set-up files).
+cd "${0%/*}" || exit 1
+rm -rf processor* postProcessing constant/polyMesh log.* [1-9]* 0.[0-9]*

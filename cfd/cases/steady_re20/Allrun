@@ -1,0 +1,15 @@
+#!/bin/sh
+# Mesh and run one case.  Usage: ./Allrun [nProcs]   (default 1 = serial)
+cd "${0%/*}" || exit 1
+NPROCS=${1:-1}
+blockMesh > log.blockMesh 2>&1 || { echo "blockMesh failed (see log.blockMesh)"; exit 1; }
+checkMesh > log.checkMesh 2>&1
+if [ "$NPROCS" -gt 1 ]; then
+    foamDictionary -entry numberOfSubdomains -set "$NPROCS" system/decomposeParDict
+    decomposePar -force > log.decomposePar 2>&1
+    mpirun -np "$NPROCS" pimpleFoam -parallel > log.pimpleFoam 2>&1
+    reconstructPar -latestTime > log.reconstructPar 2>&1
+else
+    pimpleFoam > log.pimpleFoam 2>&1
+fi
+echo "$(basename "$PWD"): finished (see log.pimpleFoam)"
