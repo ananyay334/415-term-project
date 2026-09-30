@@ -1,7 +1,5 @@
 # Pressure from PIV
 
-ME-415 (Computational Fluid Dynamics, IIT Bombay) term project.
-
 The project reconstructs the planar pressure field p(x, y, t) from PIV-style velocity fields
 u(x, y, t), v(x, y, t). The reconstruction is validated on four kinds of data:
 - exact Navier–Stokes solutions;
