@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+results/notebook_quick/
+cfd/cases/*/processor*/
+cfd/cases/*/postProcessing/
+cfd/cases/*/log.*

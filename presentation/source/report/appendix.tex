@@ -1,0 +1,151 @@
+% ================================================================== APPENDICES
+\appendix
+
+\chapter{Viva preparation: questions and short answers}
+The questions below collect the ones already given in the chapters plus those an examiner is likely to ask about the whole project.
+
+\section*{Big picture}
+\begin{description}[style=nextline,leftmargin=0pt]
+\item[Why is pressure from PIV an ill-posed / sensitive problem?] The data must be differentiated before being integrated, and differentiation amplifies noise as $1/h$, $1/h^2$ and $1/\Delta t$.
+\item[What is the single most important result?] There is an optimum vector spacing: finer PIV grids can give worse pressure.
+\item[Which method would you use in practice, and why?] Poisson: as robust as omni (both average errors), 27$\times$ faster, and well understood (least-squares projection).
+\item[Why use synthetic data instead of a real experiment?] The true pressure must be known everywhere to measure the error. Exact solutions and CFD give it; one can also control each error source separately.
+\end{description}
+
+\section*{Physics}
+\begin{description}[style=nextline,leftmargin=0pt]
+\item[Derive the pressure gradient from Navier--Stokes.] Rearrange momentum: $\nabla p=-\rho D\uu/Dt+\mu\nabla^2\uu$.
+\item[Why is Taylor--Green an exact solution?] $\nabla^2\uu=-2\uu$, so the unsteady and viscous terms cancel with $F=e^{-2\nu t}$, and the convective term is a gradient balanced by pressure.
+\item[Why is the convected Taylor--Green exact?] Galilean invariance: $\uu'=\mathbf c+\uu(\mathbf x-\mathbf ct)$ has the same material derivative.
+\item[What sets $\lambda$ in Kovasznay flow?] Substituting the ansatz gives $\lambda^2-Re\,\lambda-4\pi^2=0$; the negative root gives a decaying wake.
+\item[When does the Lagrangian derivative beat the Eulerian one?] When structures are convected faster than their own velocity ($w<c$): errors scale as $w^3$ vs $c^3$.
+\item[Why does Bernoulli fail here?] Both flows are rotational everywhere; Bernoulli holds across the field only in irrotational flow.
+\end{description}
+
+\section*{Numerics}
+\begin{description}[style=nextline,leftmargin=0pt]
+\item[Derive the one-sided first-derivative stencil.] Taylor-expand $f_1,f_2$; cancel $f_0$ and $f''$; get $(-3f_0+4f_1-f_2)/2h$.
+\item[How are Neumann conditions imposed?] Ghost points eliminated with a central difference of the condition; corners use both conditions.
+\item[Why is the all-Neumann system singular, and how do you fix it?] $A\mathbf1=0$; pin a node or add a zero-mean constraint (default).
+\item[What is the compatibility residual?] $\iint\nabla\cdot\G-\oint\n\cdot\G$; non-zero when $\G$ is not an exact gradient.
+\item[Why does Poisson filter noise?] It is the least-squares projection of $\G$ onto gradient fields; the curl is discarded.
+\item[Why is direct integration path dependent?] Measured $\G$ has a curl; errors along a path add like a random walk.
+\item[Why is the velocity-source Poisson form worse with noise?] Its source and its boundary data no longer come from one vector field, and it multiplies noisy derivatives.
+\item[Why does an $O(h)$ boundary row still give $O(h^2)$ global error?] The error acts on an $O(h)$ strip; the scaled scheme is a second-order finite-volume scheme.
+\end{description}
+
+\section*{Solvers and convergence}
+\begin{description}[style=nextline,leftmargin=0pt]
+\item[Show Jacobi is pseudo-time marching.] $p^{k+1}=p^k+\Delta\tau(\nabla^2_hp^k-f)$, $\Delta\tau=\omega h^2/4$.
+\item[Why does classic Jacobi stall?] The Neumann checkerboard mode has amplification $-1$.
+\item[What is $\omega_{opt}$ for SOR here?] $2/(1+\sqrt{1-\rho_J^2})$ with $\rho_J=\cos^2(\pi h/2L)$ for Neumann walls: 1.932 at $64^2$.
+\item[Why does SOR diverge for $\omega\ge2$?] Kahan: $\rho_{SOR}\ge|\omega-1|$.
+\item[Is a small change per iteration enough to stop?] No; check the residual too. With slow convergence the true error is $\Delta/(1-\rho)$.
+\item[Why normalise norms?] So the same physical imbalance gives the same number on any grid.
+\end{description}
+
+\section*{CFD}
+\begin{description}[style=nextline,leftmargin=0pt]
+\item[Why is a 2-D simulation valid at Re = 100?] The wake stays two-dimensional below Re $\approx$ 190.
+\item[Why an O-grid?] Body-fitted, near-orthogonal cells, clustered at the wall for the boundary layer.
+\item[Why the inlet kick?] A symmetric set-up delays shedding; the kick breaks symmetry and is removed at $t=6$.
+\item[How is St computed?] FFT of $C_L(t)$ after uniform resampling and a Hann window; $St=fD/U$.
+\item[Why might St and $C_D$ be higher than literature?] 5\,\% blockage from the $\pm10D$ symmetry sides.
+\item[What does GCI = 0.5\,\% mean?] The fine-mesh value lies within about 0.5\,\% of the grid-converged value (safety factor 1.25).
+\item[Why don't residuals fall to zero?] The flow is periodic; each step starts from a changed flow. Use a periodicity check instead.
+\item[How does PISO relate to this project?] It solves a pressure Poisson equation from velocity every time step: the same mathematical step as the reconstruction.
+\end{description}
+
+% ------------------------------------------------------------------
+\chapter{File map and how to run}
+
+\section{Files}
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X@{}}\toprule
+File & Role\\\midrule
+\code{fields/field.py} & \code{FlowField}, the common data interface\\
+\code{fields/analytic.py} & Taylor--Green (incl.\ convected) and Kovasznay solutions\\
+\code{fields/cfd\_loader.py}, \code{jhtdb\_loader.py} & CFD window and turbulence-database loaders\\
+\code{piv/degrade.py}, \code{denoise.py} & synthetic PIV model; Gaussian and Savitzky--Golay filters\\
+\code{core/derivatives.py} & finite-difference stencils (order 1 or 2)\\
+\code{core/material\_derivative.py} & Eulerian/Lagrangian $D\uu/Dt$ and $\G$\\
+\code{core/poisson.py} & matrix assembly, ghost points, compatibility, direct/CG solve\\
+\code{core/iterative.py} & Jacobi, Gauss--Seidel, SOR, CG with residual histories\\
+\code{core/direct\_integration.py}, \code{omni\_integration.py} & the other two integration methods\\
+\code{core/pipeline.py} & \code{reconstruct()}, the single entry point\\
+\code{analysis/metrics.py}, \code{norms.py} & error metrics and residual norms\\
+\code{analysis/plots.py}, \code{summary.py} & shared plot style; \code{SUMMARY.md} generator\\
+\code{studies/run\_*.py} & one script per parameter sweep\\
+\code{cfd/generate\_cases.py} & writes the OpenFOAM cases and \code{mesh\_info.json}\\
+\code{cfd/cases/*/Allrun} & mesh and run one case (serial or parallel)\\
+\code{cfd/export\_window.py} & window samples $\to$ \code{cylinder\_re100\_window.npz}\\
+\code{cfd/grid\_independence.py} & St, $C_D$, $C_L$, Richardson/GCI\\
+\code{cfd/parse\_log.py}, \code{change\_norm.py} & solver residuals; periodicity check\\
+\code{tests/} & 87 unit tests\\
+\code{run\_all.py} & runs every study and the summary\\\bottomrule
+\end{tabularx}\end{table}
+
+\section{Commands}
+Analytic studies (any OS, from \code{piv\_pressure/}):
+\begin{lstlisting}
+python -m pip install -r requirements.txt
+python -m pytest -q            # 87 passed
+python run_all.py --quick      # ~40 s check
+python run_all.py              # full run, ~8 min
+\end{lstlisting}
+\needspace{16\baselineskip}
+CFD on native Windows with the OpenFOAM MinGW build (OpenFOAM terminal for the runs, PowerShell for Python):
+\begin{lstlisting}
+python cfd/generate_cases.py                              # PowerShell
+sed -i 's/\r$//' cfd/cases/*/Allrun                       # OpenFOAM terminal
+sed -i 's/mpirun -np/mpiexec -n/' cfd/cases/*/Allrun      # MS-MPI only has mpiexec
+sh cfd/cases/coarse/Allrun 4
+sh cfd/cases/medium/Allrun 4
+sh cfd/cases/fine/Allrun 4
+python cfd/grid_independence.py                           # PowerShell, after the runs
+python cfd/export_window.py
+python cfd/parse_log.py
+python cfd/change_norm.py
+python run_all.py
+\end{lstlisting}
+
+% ------------------------------------------------------------------
+\chapter{Notation}
+\begin{table}[H]\centering\small
+\begin{tabular}{@{}ll@{}}\toprule
+Symbol & Meaning\\\midrule
+$\uu=(u,v)$ & velocity\\
+$p$, $p_{ref}$ & reconstructed and true pressure (kinematic in CFD, $\rho=1$)\\
+$\rho,\ \mu,\ \nu=\mu/\rho$ & density, dynamic and kinematic viscosity\\
+$\G$ & pressure gradient estimated from velocity, $-\rho D\uu/Dt+\mu\nabla^2\uu$\\
+$h$ ($\Delta x,\Delta y$) & PIV vector spacing\\
+$W$ & interrogation-window width\\
+$\sigma$ & velocity noise level, fraction of $U$\\
+$\Delta t$ & time between PIV snapshots\\
+$\eps_{L2},\ \eps_{max}$ & relative $L_2$ error; max error over $\tfrac12\rho U^2$\\
+$R$ & compatibility residual\\
+$A,\ b,\ w$ & Poisson matrix, right-hand side, trapezoidal weights\\
+$\omega$ & relaxation factor (Jacobi, SOR)\\
+$\rho_J,\ \rho_{SOR}$ & spectral radii of the iteration matrices\\
+$St,\ C_D,\ C_L$ & Strouhal number, drag and lift coefficients\\
+$p$ (Richardson), GCI & observed order; grid convergence index\\\bottomrule
+\end{tabular}\end{table}
+
+% ------------------------------------------------------------------
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+\begin{enumerate}[label={[\arabic*]},leftmargin=*]
+\item B.\,W.\ van Oudheusden, PIV-based pressure measurement, \emph{Meas.\ Sci.\ Technol.}\ 24 (2013) 032001.
+\item J.\,J.\ Charonko, C.\,V.\ King, B.\,L.\ Smith, P.\,P.\ Vlachos, Assessment of pressure field calculations from particle image velocimetry measurements, \emph{Meas.\ Sci.\ Technol.}\ 21 (2010) 105401.
+\item Z.\ Pan, J.\ Whitehead, S.\ Thomson, T.\ Truscott, Error propagation dynamics of PIV-based pressure field calculations: how well does the pressure Poisson solver perform inherently?, \emph{Meas.\ Sci.\ Technol.}\ 27 (2016) 084012. \url{https://arxiv.org/abs/1602.00037}
+\item P.\,L.\ van Gent et al., Comparative assessment of pressure field reconstructions from particle image velocimetry measurements and Lagrangian particle tracking, \emph{Exp.\ Fluids} 58 (2017).
+\item X.\ Liu, J.\ Katz, Instantaneous pressure and material acceleration measurements using a four-exposure PIV system, \emph{Exp.\ Fluids} 41 (2006) 227--240.
+\item D.\ Violato, P.\ Moore, F.\ Scarano, Lagrangian and Eulerian pressure field evaluation of rod--airfoil flow from time-resolved tomographic PIV, \emph{Exp.\ Fluids} 50 (2011) 1057--1070.
+\item R.\ de Kat, B.\,W.\ van Oudheusden, Instantaneous planar pressure determination from PIV in turbulent flow, \emph{Exp.\ Fluids} 52 (2012).
+\item J.\ Park, K.\ Kwon, H.\ Choi, Numerical solutions of flow past a circular cylinder at Reynolds numbers up to 160, \emph{KSME Int.\ J.}\ 12 (1998) 1200--1205.
+\item C.\,H.\,K.\ Williamson, Vortex dynamics in the cylinder wake, \emph{Annu.\ Rev.\ Fluid Mech.}\ 28 (1996) 477--539.
+\item L.\,I.\,G.\ Kovasznay, Laminar flow behind a two-dimensional grid, \emph{Proc.\ Camb.\ Philos.\ Soc.}\ 44 (1948) 58--62.
+\item I.\,B.\ Celik et al., Procedure for estimation and reporting of uncertainty due to discretization in CFD applications, \emph{J.\ Fluids Eng.}\ 130 (2008) 078001.
+\item D.\,M.\ Young, \emph{Iterative Solution of Large Linear Systems}, Academic Press, 1971.
+\end{enumerate}
+\textit{Notes.} The findings attributed to [3], [4] and [6] were checked against the papers' abstracts or text; [2] as summarised in [3]. Literature values for the cylinder wake ([8]) are approximate and should be confirmed from the paper before quoting.

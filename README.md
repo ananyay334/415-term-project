@@ -493,3 +493,11 @@ Comparison values for the cylinder, all to be checked **[verify]**: C. H. K. Wil
 Vortex dynamics in the cylinder wake, *Annu. Rev. Fluid Mech.* 28; J. Park, K. Kwon, H. Choi
 (1998), Numerical solutions of flow past a circular cylinder at Reynolds numbers up to 160,
 *KSME Int. J.* 12.
+
+---
+
+## Presentation and CFD results
+
+- `presentation/`: the 10-minute talk deck (with speaker script in the notes), the full decks in
+  two formats, the 59-page explainer PDF, and the scripts that build them.
+- `results/cfd/`: grid-independence table and figures from the OpenFOAM cylinder-wake runs.

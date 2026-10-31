@@ -1,0 +1,126 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathpazo}
+\usepackage[scaled=0.9]{helvet}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.4cm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{needspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{1F4E79}
+\definecolor{accent2}{HTML}{2A78D6}
+\definecolor{boxbg}{HTML}{EEF3FA}
+\definecolor{warnbg}{HTML}{FDF1E7}
+\definecolor{warn}{HTML}{B2531A}
+\definecolor{qbg}{HTML}{F2F7F2}
+\definecolor{qcol}{HTML}{2C6E3F}
+
+\captionsetup{font=small,labelfont={bf,color=accent},margin=0.5cm}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parskip}{5pt}
+
+\titleformat{\chapter}[display]{\normalfont\sffamily\bfseries\color{accent}}{\large Chapter \thechapter}{4pt}{\huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+\titleformat{\section}{\normalfont\sffamily\bfseries\Large\color{accent}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\sffamily\bfseries\large\color{accent}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalfont\sffamily\bfseries\color{accent}}{}{0em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\color{gray}Pressure from PIV: the complete explainer}
+\fancyhead[R]{\small\sffamily\color{gray}\leftmark}
+\fancyfoot[C]{\small\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+
+\newtcolorbox{keyidea}[1][Key idea]{colback=boxbg,colframe=accent,boxrule=0.6pt,arc=2pt,
+  fonttitle=\sffamily\bfseries\small,title=#1,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{pitfall}[1][Pitfall]{colback=warnbg,colframe=warn,boxrule=0.6pt,arc=2pt,
+  fonttitle=\sffamily\bfseries\small,title=#1,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{viva}[1][Viva questions]{colback=qbg,colframe=qcol,boxrule=0.6pt,arc=2pt,
+  fonttitle=\sffamily\bfseries\small,title=#1,left=6pt,right=6pt,top=4pt,bottom=4pt,breakable}
+
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,frame=single,
+  rulecolor=\color{gray!50},backgroundcolor=\color{gray!6},xleftmargin=4pt,xrightmargin=4pt,
+  aboveskip=6pt,belowskip=6pt,breaklines=true}
+
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\G}{\mathbf{G}}
+\newcommand{\n}{\mathbf{n}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\fig}[3][0.95]{\begin{figure}[H]\centering\includegraphics[width=#1\linewidth]{img/#2}\caption{#3}\end{figure}}
+
+\begin{document}
+
+% ------------------------------------------------------------------ title
+\begin{titlepage}
+\centering
+\vspace*{1.2cm}
+{\sffamily\large\color{gray} ME 415 \textperiodcentered{} Computational Fluid Dynamics and Heat Transfer \textperiodcentered{} IIT Bombay\par}
+\vspace{1.6cm}
+{\sffamily\bfseries\fontsize{30}{36}\selectfont\color{accent} Pressure from PIV\par}
+\vspace{0.3cm}
+{\sffamily\Large Algorithms and Comparison with Simulations\par}
+\vspace{0.6cm}
+{\large\itshape The complete explainer: from first principles to every result\par}
+\vspace{1.2cm}
+\includegraphics[width=0.48\linewidth]{img/f_hero.png}
+\vfill
+{\large Anany Bajpai (24B2135) \quad\textperiodcentered\quad Arnav Oza (24B2217)\par}
+\vspace{0.2cm}
+{\normalsize Instructor: Prof.\ Anjishnu Choudhury\par}
+\vspace{0.2cm}
+{\small\color{gray} Term project 6 \textperiodcentered{} Autumn 2026 \textperiodcentered{} Document version of 31 October 2026\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+\chapter*{How to read this document}
+\addcontentsline{toc}{chapter}{How to read this document}
+This document explains the whole project from the ground up. It assumes you know undergraduate fluid mechanics and basic numerical methods, and nothing about PIV or pressure reconstruction. It goes all the way down to individual stencils, matrix rows and the reasons behind every design decision, so you can defend any line of the code in a viva.
+
+\begin{itemize}
+  \item \textbf{Part I (Chapters 1--3)} builds the physics: what PIV measures, why pressure is not measured, and how the Navier--Stokes equations let us recover it.
+  \item \textbf{Part II (Chapters 4--7)} builds the numerics: finite differences and how they amplify noise, the discrete Poisson problem and its singularity, the three integration algorithms, and the iterative solvers.
+  \item \textbf{Part III (Chapters 8--9)} sets up the virtual experiment: exact flows, the synthetic PIV error model, metrics, and the code that runs it all.
+  \item \textbf{Part IV (Chapters 10--11)} presents every result with the reason it comes out the way it does.
+  \item \textbf{Part V (Chapters 12--14)} covers the OpenFOAM cylinder-wake simulation, the comparison with published studies, and the conclusions.
+  \item \textbf{Appendices} collect viva questions with short answers, a file map, the run commands and the notation.
+\end{itemize}
+
+Three kinds of boxes recur:
+\begin{keyidea}A result or principle worth remembering.\end{keyidea}
+\begin{pitfall}Something that goes wrong if done naively, and what the project does instead.\end{pitfall}
+\begin{viva}Questions an examiner is likely to ask, with short answers.\end{viva}
+
+\textbf{Sources of the numbers.} Every analytic result comes from the project's own CSV files (\code{results/*.csv}, 10 noise seeds, deterministic). The cylinder-wake results in Chapter~12 come from the OpenFOAM runs (three meshes) and their post-processing scripts.
+
+\tableofcontents
+
+\clearpage
+\pagenumbering{arabic}
+
+\input{part1}
+\input{part2}
+\input{part3}
+\input{part4}
+\input{part5}
+\input{appendix}
+
+\end{document}
